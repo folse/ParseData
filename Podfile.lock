@@ -1,33 +1,34 @@
 PODS:
-  - AFNetworking (2.5.0):
+  - AFNetworking (2.2.0):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
     - AFNetworking/UIKit
-  - AFNetworking/NSURLConnection (2.5.0):
+  - AFNetworking/NSURLConnection (2.2.0):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/NSURLSession (2.5.0):
-    - AFNetworking/Reachability
-    - AFNetworking/Security
-    - AFNetworking/Serialization
-  - AFNetworking/Reachability (2.5.0)
-  - AFNetworking/Security (2.5.0)
-  - AFNetworking/Serialization (2.5.0)
-  - AFNetworking/UIKit (2.5.0):
+  - AFNetworking/NSURLSession (2.2.0):
+    - AFNetworking/NSURLConnection
+  - AFNetworking/Reachability (2.2.0)
+  - AFNetworking/Security (2.2.0)
+  - AFNetworking/Serialization (2.2.0)
+  - AFNetworking/UIKit (2.2.0):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
-  - Qiniu (7.0.0):
-    - AFNetworking (~> 2.0)
+  - Bolts (1.1.3)
+  - Parse (1.5.0):
+    - Bolts (~> 1.1.3)
 
 DEPENDENCIES:
-  - Qiniu (= 7.0)
+  - AFNetworking (= 2.2.0)
+  - Parse (= 1.5.0)
 
 SPEC CHECKSUMS:
-  AFNetworking: 0f54cb5d16ce38c1b76948faffb8d5fb705021c7
-  Qiniu: f6e88a813ae889036fb8035c036e6705341ad8f8
+  AFNetworking: 5f2538aa2d150b71d4e6cca3a420d796e1e1c374
+  Bolts: 3db0a875235e0c9042b013af13af0f00f79b102c
+  Parse: 7de25b6f70f0b233e5d25835f62eabfa91e4f9d7
 
 COCOAPODS: 0.34.4
