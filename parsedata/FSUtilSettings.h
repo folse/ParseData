@@ -73,6 +73,9 @@ HUD.customView = [[YSpinKitView alloc] initWithStyle:YSpinKitViewStyleBounce col
 
 #define UMENG_APP_KEY @"536ef5ee56240b0a790f4074"
 
+#define QiNiuAK @"StbRobqxbTkicUShT5AlRXqXs6I7LCEZCk-tmLXz"
+#define QiNiuSK @"RuWkSQA1pXyjI_Rn_W4aRylC6cj0q_sgT3m7Xc39"
+
 //#define API_BASE_URL [NSString stringWithFormat:@"http://%@",[USER valueForKey:@"test"]]
 
 @interface FSUtilSettings : NSObject

@@ -7,13 +7,19 @@
 //
 
 #import "ViewController.h"
+#import "QiniuSimpleUploader.h"
+#import "F.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
-@interface ViewController ()
+@interface ViewController ()<QiniuUploadDelegate>
 {
     int pageId;
     int clearId;
     NSMutableArray *clearArray;
+    PFObject *currentObject;
 }
+
+@property (nonatomic, strong) QiniuSimpleUploader *qiniuUploader;
 
 @end
 
@@ -24,7 +30,15 @@
     
     clearArray = [NSMutableArray new];
     
+    [self initQiniu];
+    
     [self clearData];
+}
+
+-(void)initQiniu
+{
+    self.qiniuUploader = [QiniuSimpleUploader uploaderWithToken:[F getQiNiuToken]];
+    self.qiniuUploader.delegate = self;
 }
 
 -(void)clearData
@@ -58,18 +72,62 @@
         
         NSLog(@"%@",eachObject[@"url"]);
         
-        NSString *token = @"";
-        QNUploadManager *upManager = [[QNUploadManager alloc] init];
-        NSData *data = [@"Hello, World!" dataUsingEncoding : NSUTF8StringEncoding];
-        [upManager putData:data key:@"hello" token:token
-                  complete: ^(QNResponseInfo *info, NSString *key, NSDictionary *resp) {
-                      NSLog(@"%@", info);
-                      NSLog(@"%@", resp);
-                  } option:nil];
-        
-        
+        SDWebImageManager *manager = [SDWebImageManager sharedManager];
+        [manager downloadImageWithURL:[NSURL URLWithString:eachObject[@"url"]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+            
+        } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+            
+            currentObject = eachObject;
+            
+            [self uploadToQiNiu:image];
+            
+        }];
+
     }
 }
+
+-(void)uploadToQiNiu:(UIImage *)image
+{
+    NSString *timeSp = [NSString stringWithFormat:@"%.3f", [[NSDate date] timeIntervalSince1970]];
+    timeSp = [timeSp stringByReplacingOccurrencesOfString:@"." withString:@""];
+    NSData *imageData = UIImageJPEGRepresentation(image , 1.0);
+    [self.qiniuUploader uploadFileData:imageData key:[NSString stringWithFormat:@"%@.png", timeSp] extra:nil];
+}
+
+- (void)uploadSucceeded:(NSString *)theFilePath ret:(NSDictionary *)ret
+{
+    NSString *imageUrl = [NSString stringWithFormat:@"http://mmwd-client.qiniudn.com/%@",ret[@"key"]];
+    
+    currentObject[@"url"] = imageUrl;
+    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+       
+        clearId += 1;
+        
+        if (clearId == clearArray.count) {
+            
+            pageId += 1;
+            clearId = 0;
+            [self clearData];
+            
+        }else{
+            
+            [self addPhotoToQiniu:clearArray[clearId]];
+        }
+        
+    }];
+
+}
+
+- (void)uploadProgressUpdated:(NSString *)theFilePath percent:(float)percent
+{
+    
+}
+
+- (void)uploadFailed:(NSString *)theFilePath error:(NSError *)error
+{
+    
+}
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

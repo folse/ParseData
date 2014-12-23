@@ -20,6 +20,7 @@
 		A11248A41A483EBA006F89A3 /* QiniuHttpClient.m in Sources */ = {isa = PBXBuildFile; fileRef = A112489C1A483EBA006F89A3 /* QiniuHttpClient.m */; };
 		A11248A51A483EBA006F89A3 /* QiniuSimpleUploader.m in Sources */ = {isa = PBXBuildFile; fileRef = A112489F1A483EBA006F89A3 /* QiniuSimpleUploader.m */; };
 		A11248A61A483EBA006F89A3 /* QiniuUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248A21A483EBA006F89A3 /* QiniuUtils.m */; };
+		A11248AA1A4991CD006F89A3 /* F.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248A91A4991CD006F89A3 /* F.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,8 @@
 		A11248A01A483EBA006F89A3 /* QiniuUploadDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QiniuUploadDelegate.h; sourceTree = "<group>"; };
 		A11248A11A483EBA006F89A3 /* QiniuUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QiniuUtils.h; sourceTree = "<group>"; };
 		A11248A21A483EBA006F89A3 /* QiniuUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QiniuUtils.m; sourceTree = "<group>"; };
+		A11248A81A4991CC006F89A3 /* F.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = F.h; sourceTree = "<group>"; };
+		A11248A91A4991CD006F89A3 /* F.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = F.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,7 +127,7 @@
 				A11248491A480A01006F89A3 /* LaunchScreen.xib */,
 				A11248621A480DD0006F89A3 /* FSUtilSettings.h */,
 				A11248631A480DD0006F89A3 /* FSUtilSettings.m */,
-				A11248A71A483EBD006F89A3 /* QiniuSDK */,
+				A11248AC1A4991D8006F89A3 /* Vender */,
 				A112483A1A480A01006F89A3 /* Supporting Files */,
 			);
 			path = parsedata;
@@ -173,6 +176,24 @@
 				A112489C1A483EBA006F89A3 /* QiniuHttpClient.m */,
 			);
 			name = QiniuSDK;
+			sourceTree = "<group>";
+		};
+		A11248AB1A4991CF006F89A3 /* FolseKit */ = {
+			isa = PBXGroup;
+			children = (
+				A11248A81A4991CC006F89A3 /* F.h */,
+				A11248A91A4991CD006F89A3 /* F.m */,
+			);
+			name = FolseKit;
+			sourceTree = "<group>";
+		};
+		A11248AC1A4991D8006F89A3 /* Vender */ = {
+			isa = PBXGroup;
+			children = (
+				A11248A71A483EBD006F89A3 /* QiniuSDK */,
+				A11248AB1A4991CF006F89A3 /* FolseKit */,
+			);
+			name = Vender;
 			sourceTree = "<group>";
 		};
 		DB816CD48F3203A523D62988 /* Pods */ = {
@@ -319,6 +340,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11248AA1A4991CD006F89A3 /* F.m in Sources */,
 				A11248A51A483EBA006F89A3 /* QiniuSimpleUploader.m in Sources */,
 				A11248431A480A01006F89A3 /* ViewController.m in Sources */,
 				A11248401A480A01006F89A3 /* AppDelegate.m in Sources */,
