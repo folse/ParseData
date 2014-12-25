@@ -7,19 +7,15 @@
 //
 
 #import "ViewController.h"
-#import "QiniuSimpleUploader.h"
 #import "F.h"
-#import <SDWebImage/UIImageView+WebCache.h>
 
-@interface ViewController ()<QiniuUploadDelegate>
+@interface ViewController ()
 {
     int pageId;
     int clearId;
     NSMutableArray *clearArray;
     PFObject *currentObject;
 }
-
-@property (nonatomic, strong) QiniuSimpleUploader *qiniuUploader;
 
 @end
 
@@ -29,17 +25,8 @@
     [super viewDidLoad];
     
     clearArray = [NSMutableArray new];
-    
-    [self initQiniu];
-    
+ 
     [self clearData];
-}
-
--(void)initQiniu
-{
-    s([F getQiNiuToken])
-    self.qiniuUploader = [QiniuSimpleUploader uploaderWithToken:@"vdc6zqJGZLdU2z_lXXBJ_NLXK-M18XQ2Y7E5cyjb:mve_iiazcLSkPOFHe2wEb2diYDY=:eyJzY29wZSI6Im1td2QtY2xpZW50OjEyMyIsImRlYWRsaW5lIjoxNDE5NTA5MTAyfQ=="];
-    self.qiniuUploader.delegate = self;
 }
 
 -(void)clearData
@@ -72,17 +59,6 @@
     if (eachObject && eachObject[@"url"]){
         
         NSLog(@"%@",eachObject[@"url"]);
-        
-//        SDWebImageManager *manager = [SDWebImageManager sharedManager];
-//        [manager downloadImageWithURL:[NSURL URLWithString:eachObject[@"url"]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
-//            
-//        } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-//            
-//            currentObject = eachObject;
-//            
-//            [self uploadToQiNiu:image];
-//            
-//        }];
         
         NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
         [parameterDict setObject:eachObject[@"url"] forKey:@"file_url"];
@@ -129,48 +105,6 @@
 
     }
 }
-
--(void)uploadToQiNiu:(UIImage *)image
-{
-    NSString *timeSp = [NSString stringWithFormat:@"%.3f", [[NSDate date] timeIntervalSince1970]];
-    timeSp = [timeSp stringByReplacingOccurrencesOfString:@"." withString:@""];
-    s(timeSp)
-    NSData *imageData = UIImageJPEGRepresentation(image , 1.0);
-    [self.qiniuUploader uploadFileData:imageData key:[NSString stringWithFormat:@"%@.png", timeSp] extra:nil];
-}
-
-//- (void)uploadSucceeded:(NSString *)theFilePath ret:(NSDictionary *)ret
-//{
-//    NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",ret[@"key"]];
-//    currentObject[@"url"] = imageUrl;
-//    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-//       
-//        clearId += 1;
-//        
-//        if (clearId == clearArray.count) {
-//            
-//            pageId += 1;
-//            clearId = 0;
-//            [self clearData];
-//            
-//        }else{
-//            
-//            [self addPhotoToQiniu:clearArray[clearId]];
-//        }
-//        
-//    }];
-//
-//}
-//
-//- (void)uploadProgressUpdated:(NSString *)theFilePath percent:(float)percent
-//{
-//    
-//}
-//
-//- (void)uploadFailed:(NSString *)theFilePath error:(NSError *)error
-//{
-//    s(error)
-//}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
