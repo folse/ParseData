@@ -7,7 +7,6 @@
 //
 
 #import "ViewController.h"
-#import "F.h"
 
 @interface ViewController ()
 {
@@ -99,10 +98,8 @@
             }
             
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            s(error)
-
+            s(operation.responseString)
         }];
-
     }
 }
 

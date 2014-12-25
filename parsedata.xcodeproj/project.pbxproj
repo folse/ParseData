@@ -16,7 +16,6 @@
 		A112484B1A480A01006F89A3 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = A11248491A480A01006F89A3 /* LaunchScreen.xib */; };
 		A11248571A480A01006F89A3 /* parsedataTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248561A480A01006F89A3 /* parsedataTests.m */; };
 		A11248641A480DD0006F89A3 /* FSUtilSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248631A480DD0006F89A3 /* FSUtilSettings.m */; };
-		A11248AA1A4991CD006F89A3 /* F.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248A91A4991CD006F89A3 /* F.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,8 +48,6 @@
 		A11248611A480D88006F89A3 /* parsedata-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "parsedata-Prefix.pch"; sourceTree = "<group>"; };
 		A11248621A480DD0006F89A3 /* FSUtilSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSUtilSettings.h; sourceTree = "<group>"; };
 		A11248631A480DD0006F89A3 /* FSUtilSettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSUtilSettings.m; sourceTree = "<group>"; };
-		A11248A81A4991CC006F89A3 /* F.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = F.h; sourceTree = "<group>"; };
-		A11248A91A4991CD006F89A3 /* F.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = F.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,19 +142,9 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		A11248AB1A4991CF006F89A3 /* FolseKit */ = {
-			isa = PBXGroup;
-			children = (
-				A11248A81A4991CC006F89A3 /* F.h */,
-				A11248A91A4991CD006F89A3 /* F.m */,
-			);
-			name = FolseKit;
-			sourceTree = "<group>";
-		};
 		A11248AC1A4991D8006F89A3 /* Vender */ = {
 			isa = PBXGroup;
 			children = (
-				A11248AB1A4991CF006F89A3 /* FolseKit */,
 			);
 			name = Vender;
 			sourceTree = "<group>";
@@ -306,7 +293,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A11248AA1A4991CD006F89A3 /* F.m in Sources */,
 				A11248431A480A01006F89A3 /* ViewController.m in Sources */,
 				A11248401A480A01006F89A3 /* AppDelegate.m in Sources */,
 				A112483D1A480A01006F89A3 /* main.m in Sources */,
