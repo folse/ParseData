@@ -73,8 +73,11 @@ HUD.customView = [[YSpinKitView alloc] initWithStyle:YSpinKitViewStyleBounce col
 
 #define UMENG_APP_KEY @"536ef5ee56240b0a790f4074"
 
-#define QiNiuAK @"StbRobqxbTkicUShT5AlRXqXs6I7LCEZCk-tmLXz"
-#define QiNiuSK @"RuWkSQA1pXyjI_Rn_W4aRylC6cj0q_sgT3m7Xc39"
+//#define QiNiuAK @"StbRobqxbTkicUShT5AlRXqXs6I7LCEZCk-tmLXz"
+//#define QiNiuSK @"RuWkSQA1pXyjI_Rn_W4aRylC6cj0q_sgT3m7Xc39"
+
+#define QiNiuAK @"vdc6zqJGZLdU2z_lXXBJ_NLXK-M18XQ2Y7E5cyjb"
+#define QiNiuSK @"iANjdgatLuHhmXVTE5ibQ5OnIfg8AqKbWzYI-HXr"
 
 //#define API_BASE_URL [NSString stringWithFormat:@"http://%@",[USER valueForKey:@"test"]]
 

@@ -143,7 +143,7 @@
 - (NSDictionary *)convertToPostParams{
     NSMutableDictionary *params = [NSMutableDictionary dictionaryWithDictionary:self.params];
     if (self.checkCrc == 1) {
-        params[@"crc32"] = [NSString stringWithFormat:@"%ld", self.crc32];
+        params[@"crc32"] = [NSString stringWithFormat:@"%ld", (long)self.crc32];
     }
     return params;
 }

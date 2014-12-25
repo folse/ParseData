@@ -21,7 +21,7 @@
     if (text) {
         const char *cStr = [text UTF8String];
         unsigned char result[CC_MD5_DIGEST_LENGTH];
-        CC_MD5(cStr, strlen(cStr), result);
+        CC_MD5(cStr, (int)strlen(cStr), result);
         
         return [[NSString stringWithFormat:@"%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
                  result[0], result[1], result[2], result[3],
@@ -47,7 +47,7 @@
     NSDate *localDate = [NSDate date];
     NSDate *addOneHourTime = [localDate dateByAddingTimeInterval: 24 * 60 * 60 ];
     NSString *deadLineTime = [NSString stringWithFormat:@"%ld", (long)[addOneHourTime timeIntervalSince1970]];
-    NSString *base64String = [[NSString stringWithFormat:@"{\"scope\":\"app\",\"deadline\":%@}",deadLineTime] base64String];
+    NSString *base64String = [[NSString stringWithFormat:@"{\"scope\":\"ts-image1\",\"deadline\":%@}",deadLineTime] base64String];
     NSString *safeBaseURL =  [[[base64String stringByReplacingOccurrencesOfString:@"+" withString:@"-"] stringByReplacingOccurrencesOfString:@"/" withString:@"_"]stringByReplacingOccurrencesOfString:@"=" withString:@"9"];
     NSString *HMacSha1String = [self hmacsha1:safeBaseURL secret:QiNiuSK];
     HMacSha1String = [[HMacSha1String stringByReplacingOccurrencesOfString:@"+" withString:@"-"]stringByReplacingOccurrencesOfString:@"/" withString:@"_"];

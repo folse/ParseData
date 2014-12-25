@@ -37,7 +37,8 @@
 
 -(void)initQiniu
 {
-    self.qiniuUploader = [QiniuSimpleUploader uploaderWithToken:[F getQiNiuToken]];
+    s([F getQiNiuToken])
+    self.qiniuUploader = [QiniuSimpleUploader uploaderWithToken:@"vdc6zqJGZLdU2z_lXXBJ_NLXK-M18XQ2Y7E5cyjb:mve_iiazcLSkPOFHe2wEb2diYDY=:eyJzY29wZSI6Im1td2QtY2xpZW50OjEyMyIsImRlYWRsaW5lIjoxNDE5NTA5MTAyfQ=="];
     self.qiniuUploader.delegate = self;
 }
 
@@ -72,15 +73,58 @@
         
         NSLog(@"%@",eachObject[@"url"]);
         
-        SDWebImageManager *manager = [SDWebImageManager sharedManager];
-        [manager downloadImageWithURL:[NSURL URLWithString:eachObject[@"url"]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+//        SDWebImageManager *manager = [SDWebImageManager sharedManager];
+//        [manager downloadImageWithURL:[NSURL URLWithString:eachObject[@"url"]] options:0 progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+//            
+//        } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+//            
+//            currentObject = eachObject;
+//            
+//            [self uploadToQiNiu:image];
+//            
+//        }];
+        
+        NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
+        [parameterDict setObject:eachObject[@"url"] forKey:@"file_url"];
+        [parameterDict setObject:eachObject.objectId forKey:@"file_name"];
+        
+        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+        [manager POST:@"http://localhost/api/upload_to_qiniu" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
             
-        } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+            NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
             
-            currentObject = eachObject;
+            if ([[JSON valueForKey:@"respcd"] isEqualToString:@"0000"]) {
+                
+                    currentObject = eachObject;
+                
+                    NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
+                
+                    currentObject[@"url"] = imageUrl;
+                
+                    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                
+                        clearId += 1;
+                
+                        if (clearId == clearArray.count) {
+                
+                            pageId += 1;
+                            clearId = 0;
+                            [self clearData];
+                            
+                        }else{
+                            
+                            [self addPhotoToQiniu:clearArray[clearId]];
+                        }
+                        
+                    }];
+                
+            }else{
+                //QFAlert(@"提示",[JSON valueForKey:@"resperr"], @"再试试");
+            }
             
-            [self uploadToQiNiu:image];
-            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            s(error)
+
         }];
 
     }
@@ -90,44 +134,43 @@
 {
     NSString *timeSp = [NSString stringWithFormat:@"%.3f", [[NSDate date] timeIntervalSince1970]];
     timeSp = [timeSp stringByReplacingOccurrencesOfString:@"." withString:@""];
+    s(timeSp)
     NSData *imageData = UIImageJPEGRepresentation(image , 1.0);
     [self.qiniuUploader uploadFileData:imageData key:[NSString stringWithFormat:@"%@.png", timeSp] extra:nil];
 }
 
-- (void)uploadSucceeded:(NSString *)theFilePath ret:(NSDictionary *)ret
-{
-    NSString *imageUrl = [NSString stringWithFormat:@"http://mmwd-client.qiniudn.com/%@",ret[@"key"]];
-    
-    currentObject[@"url"] = imageUrl;
-    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-       
-        clearId += 1;
-        
-        if (clearId == clearArray.count) {
-            
-            pageId += 1;
-            clearId = 0;
-            [self clearData];
-            
-        }else{
-            
-            [self addPhotoToQiniu:clearArray[clearId]];
-        }
-        
-    }];
-
-}
-
-- (void)uploadProgressUpdated:(NSString *)theFilePath percent:(float)percent
-{
-    
-}
-
-- (void)uploadFailed:(NSString *)theFilePath error:(NSError *)error
-{
-    
-}
-
+//- (void)uploadSucceeded:(NSString *)theFilePath ret:(NSDictionary *)ret
+//{
+//    NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",ret[@"key"]];
+//    currentObject[@"url"] = imageUrl;
+//    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+//       
+//        clearId += 1;
+//        
+//        if (clearId == clearArray.count) {
+//            
+//            pageId += 1;
+//            clearId = 0;
+//            [self clearData];
+//            
+//        }else{
+//            
+//            [self addPhotoToQiniu:clearArray[clearId]];
+//        }
+//        
+//    }];
+//
+//}
+//
+//- (void)uploadProgressUpdated:(NSString *)theFilePath percent:(float)percent
+//{
+//    
+//}
+//
+//- (void)uploadFailed:(NSString *)theFilePath error:(NSError *)error
+//{
+//    s(error)
+//}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
