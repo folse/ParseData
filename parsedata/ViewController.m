@@ -12,8 +12,14 @@
 {
     int pageId;
     int clearId;
-    NSMutableArray *clearArray;
+    int keyArrayId;
+    int photoArrayId;
+    NSArray *keyArray;
+    NSArray *clearArray;
+    NSArray *photoArray;
+    UIWebView *photoWebView;
     PFObject *currentObject;
+    NSString *loadingPhotoUrl;
 }
 
 @end
@@ -23,12 +29,50 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    clearArray = [NSMutableArray new];
- 
+    keyArray = [NSArray arrayWithObjects:@"AIzaSyC8IfTEGsA4s8I6SB4SZBgT0b2WJR7mkcY",
+                   @"AIzaSyC5xWawMGqWOi3VJq0xoLsdGKU84Nf8eLk",
+                   @"AIzaSyC6GGSFl-RKY5XgFeGEFNdkLIzC5g5JSpw",
+                   @"AIzaSyBCgh8Bmg43FiPBBAjrMj7bJTDpK5wlLZ4",
+                   @"AIzaSyAqLUgVvQV1qmN1APpndQJqoF8q1MR-Ls0",
+                   @"AIzaSyD7LqPOyd_uwydZgeeWNHIThV3794q2bEY",
+                   @"AIzaSyBvs25RjogtWqPDD13ja_iOvC26ODLvQeM",
+                   @"AIzaSyAcsvwj8u-Lvvm7gCMKzkzP5p33TVHHEeU",
+                   @"AIzaSyCy7uC4Uy974sAyIujoJDKJaIIoVZDtXx4",
+                   @"AIzaSyAsFPk3j65gBZZd1QSm9HaJAxscWg_gKY0",
+                   @"AIzaSyAeHrJ1pTedhijma8bP1GSu8dZVvPGn77s",
+                   @"AIzaSyAKXbdKWEO6xrhe_lk4dk3RTxCtQc8hfVw",
+                   @"AIzaSyA_oc9uDRGeC3dkZWD4awlK5uhygss5seg",
+                   @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
+                   @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
+    
     [self clearData];
+    
+     //[self clearPhoto];
 }
 
 -(void)clearData
+{
+    PFQuery *query = [PFQuery queryWithClassName:@"StockholmPlace"];
+    query.skip = pageId * 100;
+    query.limit = 100;
+    [query orderByDescending:@"createdAt"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        if (!error) {
+            
+            clearArray = objects;
+            
+            //[self findDuplicateData:clearArray[clearId]];
+            
+            [self addDetailToParse:clearArray[clearId]];
+            
+        } else {
+            
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+        }
+    }];
+}
+
+-(void)clearPhoto
 {
     PFQuery *query = [PFQuery queryWithClassName:@"Photo"];
     [query whereKey:@"url" hasPrefix:@"https"];
@@ -38,14 +82,12 @@
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         if (!error) {
             
-            clearArray = [NSMutableArray arrayWithArray:objects];
-            
-            //[self findDuplicateData:clearArray[clearId]];
-            
+            clearArray = objects;
+    
             //[self addPhotoToParse:clearArray[clearId]];
-
-            [self addPhotoToQiniu:clearArray[clearId]];
-
+            
+            //[self addPhotoToQiniu:clearArray[clearId]];
+            
         } else {
             
             NSLog(@"Error: %@ %@", error, [error userInfo]);
@@ -70,28 +112,28 @@
             
             if ([[JSON valueForKey:@"respcd"] isEqualToString:@"0000"]) {
                 
-                    currentObject = eachObject;
+                currentObject = eachObject;
                 
-                    NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
+                NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
                 
-                    currentObject[@"url"] = imageUrl;
+                currentObject[@"url"] = imageUrl;
                 
-                    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                
-                        clearId += 1;
-                
-                        if (clearId == clearArray.count) {
-                
-                            pageId += 1;
-                            clearId = 0;
-                            [self clearData];
-                            
-                        }else{
-                            
-                            [self addPhotoToQiniu:clearArray[clearId]];
-                        }
+                [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    
+                    clearId += 1;
+                    
+                    if (clearId == clearArray.count) {
                         
-                    }];
+                        pageId += 1;
+                        clearId = 0;
+                        [self clearData];
+                        
+                    }else{
+                        
+                        [self addPhotoToQiniu:clearArray[clearId]];
+                    }
+                    
+                }];
                 
             }else{
                 //QFAlert(@"提示",[JSON valueForKey:@"resperr"], @"再试试");
@@ -101,6 +143,47 @@
             s(operation.responseString)
         }];
     }
+}
+
+-(void)addDetailToParse:(PFObject *)eachObject
+{
+    NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
+    [parameterDict setObject:@"false" forKey:@"sensor"];
+    [parameterDict setObject:eachObject[@"g_reference"] forKey:@"reference"];
+    [parameterDict setObject:keyArray[keyArrayId] forKey:@"key"];
+    
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager GET:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
+        
+        NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
+        
+        if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]) {
+            NSDictionary *result = (NSDictionary *)[JSON valueForKey:@"result"];
+            
+            NSString *phone = [result valueForKey:@"formatted_phone_number"];
+            
+            [eachObject setObject:phone forKey:@"phone"];
+            [eachObject save];
+            
+            clearId += 1;
+            
+            [self addDetailToParse:clearArray[clearId]];
+            
+            
+        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]){
+            
+            
+            
+            
+        }
+        
+        
+
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        s(operation.responseString)
+    }];
+    
 }
 
 - (void)didReceiveMemoryWarning {
