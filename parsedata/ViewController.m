@@ -76,25 +76,20 @@
                 
                     currentObject[@"url"] = imageUrl;
                 
-                    [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+                    [currentObject save];
+            }
+            
+            clearId += 1;
+            
+            if (clearId == clearArray.count) {
                 
-                        clearId += 1;
-                
-                        if (clearId == clearArray.count) {
-                
-                            pageId += 1;
-                            clearId = 0;
-                            [self clearData];
-                            
-                        }else{
-                            
-                            [self addPhotoToQiniu:clearArray[clearId]];
-                        }
-                        
-                    }];
+                pageId += 1;
+                clearId = 0;
+                [self clearData];
                 
             }else{
-                //QFAlert(@"提示",[JSON valueForKey:@"resperr"], @"再试试");
+                
+                [self addPhotoToQiniu:clearArray[clearId]];
             }
             
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
