@@ -164,15 +164,11 @@
             [self addDetailToParse:clearArray[clearId]];
             
             
-        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]){
+        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OVER_QUERY_LIMIT"]){
             
-            
-            
-            
+            keyArrayId += 1;
+            [self addDetailToParse:eachObject];
         }
-        
-        
-
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         s(operation.responseString)
