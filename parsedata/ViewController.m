@@ -115,28 +115,22 @@
                 currentObject = eachObject;
                 
                 NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
-                
+
                 currentObject[@"url"] = imageUrl;
+                    [currentObject save];
+            }
+            
+            clearId += 1;
+            
+            if (clearId == clearArray.count) {
                 
-                [currentObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
-                    
-                    clearId += 1;
-                    
-                    if (clearId == clearArray.count) {
-                        
-                        pageId += 1;
-                        clearId = 0;
-                        [self clearData];
-                        
-                    }else{
-                        
-                        [self addPhotoToQiniu:clearArray[clearId]];
-                    }
-                    
-                }];
+                pageId += 1;
+                clearId = 0;
+                [self clearData];
                 
             }else{
-                //QFAlert(@"提示",[JSON valueForKey:@"resperr"], @"再试试");
+                
+                [self addPhotoToQiniu:clearArray[clearId]];
             }
             
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
