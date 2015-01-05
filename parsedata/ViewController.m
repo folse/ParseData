@@ -203,7 +203,26 @@
             
             keyArrayId += 1;
             [self addDetailToParse:eachObject];
+            
+        }else{
+            
+            clearId += 1;
+            
+            if (clearId == clearArray.count) {
+                
+                pageId += 1;
+                clearId = 0;
+                [self clearData];
+                
+            }else{
+                
+                i(clearId+pageId*100)
+                
+                [self addDetailToParse:clearArray[clearId]];
+            }
         }
+        
+        s([JSON valueForKey:@"status"])
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         s(operation.responseString)
