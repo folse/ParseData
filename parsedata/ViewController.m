@@ -17,6 +17,7 @@
     NSArray *keyArray;
     NSArray *clearArray;
     NSArray *photoArray;
+    NSArray *jsonArray;
     UIWebView *photoWebView;
     PFObject *currentObject;
     NSString *loadingPhotoUrl;
@@ -30,24 +31,27 @@
     [super viewDidLoad];
     
     keyArray = [NSArray arrayWithObjects:@"AIzaSyC8IfTEGsA4s8I6SB4SZBgT0b2WJR7mkcY",
-                   @"AIzaSyC5xWawMGqWOi3VJq0xoLsdGKU84Nf8eLk",
-                   @"AIzaSyC6GGSFl-RKY5XgFeGEFNdkLIzC5g5JSpw",
-                   @"AIzaSyBCgh8Bmg43FiPBBAjrMj7bJTDpK5wlLZ4",
-                   @"AIzaSyAqLUgVvQV1qmN1APpndQJqoF8q1MR-Ls0",
-                   @"AIzaSyD7LqPOyd_uwydZgeeWNHIThV3794q2bEY",
-                   @"AIzaSyBvs25RjogtWqPDD13ja_iOvC26ODLvQeM",
-                   @"AIzaSyAcsvwj8u-Lvvm7gCMKzkzP5p33TVHHEeU",
-                   @"AIzaSyCy7uC4Uy974sAyIujoJDKJaIIoVZDtXx4",
-                   @"AIzaSyAsFPk3j65gBZZd1QSm9HaJAxscWg_gKY0",
-                   @"AIzaSyAeHrJ1pTedhijma8bP1GSu8dZVvPGn77s",
-                   @"AIzaSyAKXbdKWEO6xrhe_lk4dk3RTxCtQc8hfVw",
-                   @"AIzaSyA_oc9uDRGeC3dkZWD4awlK5uhygss5seg",
-                   @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
-                   @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
+                @"AIzaSyC5xWawMGqWOi3VJq0xoLsdGKU84Nf8eLk",
+                @"AIzaSyC6GGSFl-RKY5XgFeGEFNdkLIzC5g5JSpw",
+                @"AIzaSyBCgh8Bmg43FiPBBAjrMj7bJTDpK5wlLZ4",
+                @"AIzaSyAqLUgVvQV1qmN1APpndQJqoF8q1MR-Ls0",
+                @"AIzaSyD7LqPOyd_uwydZgeeWNHIThV3794q2bEY",
+                @"AIzaSyBvs25RjogtWqPDD13ja_iOvC26ODLvQeM",
+                @"AIzaSyAcsvwj8u-Lvvm7gCMKzkzP5p33TVHHEeU",
+                @"AIzaSyCy7uC4Uy974sAyIujoJDKJaIIoVZDtXx4",
+                @"AIzaSyAsFPk3j65gBZZd1QSm9HaJAxscWg_gKY0",
+                @"AIzaSyAeHrJ1pTedhijma8bP1GSu8dZVvPGn77s",
+                @"AIzaSyAKXbdKWEO6xrhe_lk4dk3RTxCtQc8hfVw",
+                @"AIzaSyA_oc9uDRGeC3dkZWD4awlK5uhygss5seg",
+                @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
+                @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
+    
+    [self readJSONData];
     
     [self clearData];
     
-     //[self clearPhoto];
+    //[self clearPhoto];
+    
 }
 
 -(void)clearData
@@ -57,13 +61,16 @@
     query.limit = 100;
     [query orderByDescending:@"createdAt"];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        
         if (!error) {
             
             clearArray = objects;
             
             //[self findDuplicateData:clearArray[clearId]];
             
-            [self addDetailToParse:clearArray[clearId]];
+            //[self addDetailToParse:clearArray[clearId]];
+            
+            [self addReferenceToPlace:clearArray[clearId]];
             
         } else {
             
@@ -83,7 +90,7 @@
         if (!error) {
             
             clearArray = objects;
-    
+            
             //[self addPhotoToParse:clearArray[clearId]];
             
             //[self addPhotoToQiniu:clearArray[clearId]];
@@ -115,9 +122,9 @@
                 currentObject = eachObject;
                 
                 NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
-
+                
                 currentObject[@"url"] = imageUrl;
-                    [currentObject save];
+                [currentObject save];
             }
             
             clearId += 1;
@@ -174,6 +181,40 @@
         s(operation.responseString)
     }];
     
+}
+
+-(void)addReferenceToPlace:(PFObject *)eachObject
+{
+    for (NSDictionary *item in jsonArray) {
+        
+        if ([eachObject[@"place_id"] isEqualToString:item[@"place_id"]]) {
+            [eachObject setObject:item[@"reference"] forKey:@"reference"];
+            [eachObject save];
+            break;
+        }
+    }
+    
+    clearId += 1;
+    
+    if (clearId == clearArray.count) {
+        
+        pageId += 1;
+        clearId = 0;
+        [self clearData];
+        
+    }else{
+        
+        i(clearId)
+        
+        [self addReferenceToPlace:clearArray[clearId]];
+    }
+}
+
+-(void)readJSONData
+{
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"merchant_Stockholm" ofType:@"json"];
+    NSString *jsonString = [[NSString alloc] initWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
+    jsonArray = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:nil];
 }
 
 - (void)didReceiveMemoryWarning {
