@@ -46,8 +46,6 @@
                 @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
                 @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
     
-    [self readJSONData];
-    
     [self clearData];
     
     //[self clearPhoto];
@@ -68,9 +66,9 @@
             
             //[self findDuplicateData:clearArray[clearId]];
             
-            //[self addDetailToParse:clearArray[clearId]];
+            [self addDetailToParse:clearArray[clearId]];
             
-            [self addReferenceToPlace:clearArray[clearId]];
+            //[self addReferenceToPlace:clearArray[clearId]];
             
         } else {
             
@@ -150,26 +148,56 @@
 {
     NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
     [parameterDict setObject:@"false" forKey:@"sensor"];
-    [parameterDict setObject:eachObject[@"g_reference"] forKey:@"reference"];
+    [parameterDict setObject:eachObject[@"reference"] forKey:@"reference"];
     [parameterDict setObject:keyArray[keyArrayId] forKey:@"key"];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
         
-        NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
+        //NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
         
         if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]) {
+            
             NSDictionary *result = (NSDictionary *)[JSON valueForKey:@"result"];
             
-            NSString *phone = [result valueForKey:@"formatted_phone_number"];
+            if ([result objectForKey:@"opening_hours"]) {
+                
+                NSArray *openHoursArray = [result valueForKey:@"opening_hours"][@"weekday_text"];
+                
+                NSString *openHourString = @"";
+                
+                for (NSString *openDayString in openHoursArray) {
+                    openHourString = [NSString stringWithFormat:@"%@\n%@",openHourString,openDayString];
+                }
+                
+                [eachObject setObject:openHourString forKey:@"open_hour"];
+            }
             
-            [eachObject setObject:phone forKey:@"phone"];
+            if ([result objectForKey:@"formatted_phone_number"]) {
+                NSString *phone = [result valueForKey:@"formatted_phone_number"];
+                [eachObject setObject:phone forKey:@"phone"];
+            }
+            
+            if ([eachObject[@"avatar"] length] > 0) {
+                eachObject[@"has_photo"] = @YES;
+            }
+
             [eachObject save];
-            
+           
             clearId += 1;
             
-            [self addDetailToParse:clearArray[clearId]];
-            
+            if (clearId == clearArray.count) {
+                
+                pageId += 1;
+                clearId = 0;
+                [self clearData];
+                
+            }else{
+                
+                i(clearId+pageId*100)
+                
+                [self addDetailToParse:clearArray[clearId]];
+            }
             
         }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OVER_QUERY_LIMIT"]){
             
@@ -180,7 +208,6 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         s(operation.responseString)
     }];
-    
 }
 
 -(void)addReferenceToPlace:(PFObject *)eachObject
@@ -204,7 +231,7 @@
         
     }else{
         
-        i(clearId)
+        i(clearId+pageId*100)
         
         [self addReferenceToPlace:clearArray[clearId]];
     }
