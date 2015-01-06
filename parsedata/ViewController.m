@@ -102,7 +102,7 @@
 
 -(void)addPhotoToQiniu:(PFObject *)eachObject
 {
-    if (eachObject && eachObject[@"url"]){
+    if (eachObject[@"url"]){
         
         NSLog(@"%@",eachObject[@"url"]);
         
@@ -146,87 +146,112 @@
 
 -(void)addDetailToParse:(PFObject *)eachObject
 {
-    NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
-    [parameterDict setObject:@"false" forKey:@"sensor"];
-    [parameterDict setObject:eachObject[@"reference"] forKey:@"reference"];
-    [parameterDict setObject:keyArray[keyArrayId] forKey:@"key"];
+    if ([eachObject[@"avatar"] length] > 0) {
+        eachObject[@"has_photo"] = @YES;
+    }else{
+        eachObject[@"has_photo"] = @NO;
+    }
     
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager GET:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
+    [eachObject save];
+    
+    clearId += 1;
+    
+    if (clearId == clearArray.count) {
         
-        //NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
+        pageId += 1;
+        clearId = 0;
+        [self clearData];
         
-        if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]) {
-            
-            NSDictionary *result = (NSDictionary *)[JSON valueForKey:@"result"];
-            
-            if ([result objectForKey:@"opening_hours"]) {
-                
-                NSArray *openHoursArray = [result valueForKey:@"opening_hours"][@"weekday_text"];
-                
-                NSString *openHourString = @"";
-                
-                for (NSString *openDayString in openHoursArray) {
-                    openHourString = [NSString stringWithFormat:@"%@\n%@",openHourString,openDayString];
-                }
-                
-                [eachObject setObject:openHourString forKey:@"open_hour"];
-            }
-            
-            if ([result objectForKey:@"formatted_phone_number"]) {
-                NSString *phone = [result valueForKey:@"formatted_phone_number"];
-                [eachObject setObject:phone forKey:@"phone"];
-            }
-            
-            if ([eachObject[@"avatar"] length] > 0) {
-                eachObject[@"has_photo"] = @YES;
-            }
-
-            [eachObject save];
-           
-            clearId += 1;
-            
-            if (clearId == clearArray.count) {
-                
-                pageId += 1;
-                clearId = 0;
-                [self clearData];
-                
-            }else{
-                
-                i(clearId+pageId*100)
-                
-                [self addDetailToParse:clearArray[clearId]];
-            }
-            
-        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OVER_QUERY_LIMIT"]){
-            
-            keyArrayId += 1;
-            [self addDetailToParse:eachObject];
-            
-        }else{
-            
-            clearId += 1;
-            
-            if (clearId == clearArray.count) {
-                
-                pageId += 1;
-                clearId = 0;
-                [self clearData];
-                
-            }else{
-                
-                i(clearId+pageId*100)
-                
-                [self addDetailToParse:clearArray[clearId]];
-            }
-        }
+    }else{
         
-        s([JSON valueForKey:@"status"])
+        i(clearId+pageId*100)
         
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        s(operation.responseString)
-    }];
+        [self addDetailToParse:clearArray[clearId]];
+    }
+    
+//    NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
+//    [parameterDict setObject:@"false" forKey:@"sensor"];
+//    [parameterDict setObject:eachObject[@"reference"] forKey:@"reference"];
+//    [parameterDict setObject:keyArray[keyArrayId] forKey:@"key"];
+//    
+//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+//    [manager GET:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
+//        
+//        //NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
+//        
+//        if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]) {
+//            
+//            NSDictionary *result = (NSDictionary *)[JSON valueForKey:@"result"];
+//            
+//            if ([result objectForKey:@"opening_hours"]) {
+//                
+//                NSArray *openHoursArray = [result valueForKey:@"opening_hours"][@"weekday_text"];
+//                
+//                NSString *openHourString = @"";
+//                
+//                for (NSString *openDayString in openHoursArray) {
+//                    openHourString = [NSString stringWithFormat:@"%@\n%@",openHourString,openDayString];
+//                }
+//                
+//                [eachObject setObject:openHourString forKey:@"open_hour"];
+//            }
+//            
+//            if ([result objectForKey:@"formatted_phone_number"]) {
+//                NSString *phone = [result valueForKey:@"formatted_phone_number"];
+//                [eachObject setObject:phone forKey:@"phone"];
+//            }
+//            
+//            if ([eachObject[@"avatar"] length] > 0) {
+//                eachObject[@"has_photo"] = @YES;
+//            }else{
+//                eachObject[@"has_photo"] = @NO;
+//            }
+//
+//            [eachObject save];
+//           
+//            clearId += 1;
+//            
+//            if (clearId == clearArray.count) {
+//                
+//                pageId += 1;
+//                clearId = 0;
+//                [self clearData];
+//                
+//            }else{
+//                
+//                i(clearId+pageId*100)
+//                
+//                [self addDetailToParse:clearArray[clearId]];
+//            }
+//            
+//        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OVER_QUERY_LIMIT"]){
+//            
+//            keyArrayId += 1;
+//            [self addDetailToParse:eachObject];
+//            
+//        }else{
+//            
+//            clearId += 1;
+//            
+//            if (clearId == clearArray.count) {
+//                
+//                pageId += 1;
+//                clearId = 0;
+//                [self clearData];
+//                
+//            }else{
+//                
+//                i(clearId+pageId*100)
+//                
+//                [self addDetailToParse:clearArray[clearId]];
+//            }
+//        }
+//        
+//        s([JSON valueForKey:@"status"])
+//        
+//    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//        s(operation.responseString)
+//    }];
 }
 
 -(void)addReferenceToPlace:(PFObject *)eachObject
@@ -254,6 +279,179 @@
         
         [self addReferenceToPlace:clearArray[clearId]];
     }
+}
+
+
+-(void)addAvatarToParse:(PFObject *)eachObject
+{
+    PFRelation *relation = [eachObject relationForKey:@"photos"];
+    PFQuery *productPhotoQuery = [relation query];
+    productPhotoQuery.limit = 1;
+    
+    NSArray *objects = [productPhotoQuery findObjects];
+    
+    if (objects.count > 0) {
+        
+        eachObject[@"avatar"] = objects[0][@"url"];
+        
+        [eachObject save];
+    }
+    
+    [self goNextPhoto];
+}
+
+-(void)addPhotoToParse:(PFObject *)eachObject
+{
+    photoArray = [NSArray arrayWithArray:eachObject[@"g_photos"]];
+    
+    if (photoArray.count > 0){
+        
+        currentObject = eachObject;
+        
+        PFRelation *relation = [eachObject relationForKey:@"photos"];
+        PFQuery *productPhotoQuery = [relation query];
+        productPhotoQuery.limit = 1;
+        [productPhotoQuery countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
+            //if the "photos" has no photo relations, it should be the first time to add photo
+            if (!error && number == 0) {
+                
+                [self getPhotoUrl:photoArray[0]];
+                
+            }else{
+                
+                [self goNextPhoto];
+            }
+        }];
+        
+    }else{
+        
+        s(@"g_photos is 0")
+        [self goNextPhoto];
+    }
+}
+
+-(void)getPhotoUrl:(NSDictionary *)photoDataDictionary
+{
+    NSString *photoReference = photoDataDictionary[@"photo_reference"];
+    
+    [self getRealImageUrl:[NSString stringWithFormat:@"https://maps.googleapis.com/maps/api/place/photo?maxwidth=1536&photoreference=%@&sensor=false&key=%@",photoReference,keyArray[keyArrayId]]];
+}
+
+-(void)savePhotoUrl:(PFObject *)object withUrl:(NSString *)photoUrl
+{
+    PFObject *photoObject = [PFObject objectWithClassName:@"Photo"];
+    photoObject[@"url"] = photoUrl;
+    photoObject[@"other_category"]=@YES;
+    [photoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        
+        PFRelation *photoRelation = [object relationForKey:@"photos"];
+        [photoRelation addObject:photoObject];
+        
+        [object saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            
+            photoArrayId += 1;
+            
+            if (photoArray.count > photoArrayId) {
+                
+                [self getPhotoUrl:photoArray[photoArrayId]];
+                
+            }else{
+                
+                [self goNextPhoto];
+            }
+        }];
+    }];
+}
+
+-(void)getRealImageUrl:(NSString *)url
+{
+    [photoWebView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]];
+}
+
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
+{
+    s(request.URL.absoluteString)
+    
+    if ([request.URL.absoluteString rangeOfString:@"googleusercontent.com"].length > 0) {
+        
+        loadingPhotoUrl = request.URL.absoluteString;
+    }
+    
+    return YES;
+}
+
+- (void)webViewDidFinishLoad:(UIWebView *)webView
+{
+    if (loadingPhotoUrl) {
+        [self savePhotoUrl:currentObject withUrl:loadingPhotoUrl];
+        loadingPhotoUrl = nil;
+    }
+}
+
+- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error
+{
+    s(@"load error:")
+    s(error)
+    if (error.code == 403) {
+        keyArrayId += 1;
+        [self getPhotoUrl:photoArray[photoArrayId]];
+    }
+}
+
+-(void)goNextPhoto
+{
+    photoArrayId = 0;
+    
+    clearId += 1;
+    
+    if(clearId != 100){
+        NSLog(@"arrayId:%d",clearId+pageId*100);
+        [self addPhotoToParse:clearArray[clearId]];
+        //[self addAvatarToParse:clearArray[clearId]];
+    }else{
+        clearId = 0;
+        pageId += 1;
+        i(clearId+pageId*100)
+        [self clearData];
+    }
+}
+
+-(void)findDuplicateData:(PFObject *)eachObject
+{
+    PFQuery *query = [PFQuery queryWithClassName:@"StockholmPlace"];
+    [query whereKey:@"name" equalTo:eachObject[@"name"]];
+    [query whereKey:@"address" equalTo:eachObject[@"address"]];
+    [query whereKey:@"place_id" equalTo:eachObject[@"place_id"]];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        
+        if (!error) {
+            
+            for (int i = 0; i < objects.count - 1; i++) {
+                
+                if ([objects[i] delete]) {
+                    s(@"Delete Successful")
+                }
+            }
+            
+            clearId += 1;
+            
+            i(clearId+pageId*100)
+            
+            if(clearId != 100){
+                [self findDuplicateData:clearArray[clearId]];
+            }else{
+                clearId = 0;
+                pageId += 1;
+                [self clearData];
+            }
+            
+        } else {
+            
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+        }
+    }];
+    
+    i(clearId)
 }
 
 -(void)readJSONData
