@@ -54,7 +54,7 @@
 
 -(void)clearData
 {
-    PFQuery *query = [PFQuery queryWithClassName:@"StockholmPlace"];
+    PFQuery *query = [PFQuery queryWithClassName:@"Place"];
     query.skip = pageId * 100;
     query.limit = 100;
     [query orderByDescending:@"createdAt"];
@@ -146,13 +146,16 @@
 
 -(void)addDetailToParse:(PFObject *)eachObject
 {
-    if ([eachObject[@"avatar"] length] > 0) {
-        eachObject[@"has_photo"] = @YES;
+    if (!eachObject[@"address"]){
+        
+        [eachObject delete];
+        
+        s(@"no address")
+        
     }else{
-        eachObject[@"has_photo"] = @NO;
+        
+        s(@"has address")
     }
-    
-    [eachObject save];
     
     clearId += 1;
     
