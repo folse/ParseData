@@ -54,7 +54,7 @@
 
 -(void)clearData
 {
-    PFQuery *query = [PFQuery queryWithClassName:@"Place"];
+    PFQuery *query = [PFQuery queryWithClassName:@"StockholmPlace"];
     query.skip = pageId * 100;
     query.limit = 100;
     [query orderByDescending:@"createdAt"];
@@ -311,16 +311,25 @@
 
 -(void)copyParseClass:(PFObject *)eachObject
 {
-//    PFObject *newObject = [PFObject objectWithClassName:@"Place"];
-//    newObject = eachObject;
-//    newObject[@"address"] = @"123";
-//    [newObject save];
-    
     PFObject *newObject = [PFObject objectWithClassName:@"Place"];
-    //newObject = eachObject;
-    newObject[@"address"] = @"Sean Plott";
-    newObject[@"photos"] = [eachObject relationForKey:@"photos"];
     
+    newObject[@"address"] = eachObject[@"address"];
+    newObject[@"description"] = eachObject[@"description"];
+    newObject[@"address"] = eachObject[@"address"];
+    
+    if (eachObject[@"has_photo"]) {
+        
+        newObject[@"avatar"] = eachObject[@"avatar"];
+        
+        PFRelation *relation = [newObject relationForKey:@"photos"];
+        
+        NSArray *photosArray = [[[eachObject relationForKey:@"photos"] query] findObjects];
+        for (PFObject *item in photosArray) {
+            [relation addObject:item];
+        }
+    }
+
+    s(newObject)
     [newObject save];
     
 //    clearId += 1;
