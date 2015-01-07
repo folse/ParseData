@@ -66,9 +66,11 @@
             
             //[self findDuplicateData:clearArray[clearId]];
             
-            [self addDetailToParse:clearArray[clearId]];
+            //[self addDetailToParse:clearArray[clearId]];
             
             //[self addReferenceToPlace:clearArray[clearId]];
+            
+            [self copyParseClass:clearArray[clearId]];
             
         } else {
             
@@ -146,115 +148,89 @@
 
 -(void)addDetailToParse:(PFObject *)eachObject
 {
-    if (!eachObject[@"address"]){
-        
-        [eachObject delete];
-        
-        s(@"no address")
-        
-    }else{
-        
-        s(@"has address")
-    }
+    NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
+    [parameterDict setObject:@"false" forKey:@"sensor"];
+    [parameterDict setObject:eachObject[@"reference"] forKey:@"reference"];
+    [parameterDict setObject:keyArray[keyArrayId] forKey:@"key"];
     
-    clearId += 1;
-    
-    if (clearId == clearArray.count) {
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager GET:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
         
-        pageId += 1;
-        clearId = 0;
-        [self clearData];
+        //NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
         
-    }else{
+        if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]) {
+            
+            NSDictionary *result = (NSDictionary *)[JSON valueForKey:@"result"];
+            
+            if ([result objectForKey:@"opening_hours"]) {
+                
+                NSArray *openHoursArray = [result valueForKey:@"opening_hours"][@"weekday_text"];
+                
+                NSString *openHourString = @"";
+                
+                for (NSString *openDayString in openHoursArray) {
+                    openHourString = [NSString stringWithFormat:@"%@\n%@",openHourString,openDayString];
+                }
+                
+                [eachObject setObject:openHourString forKey:@"open_hour"];
+            }
+            
+            if ([result objectForKey:@"formatted_phone_number"]) {
+                NSString *phone = [result valueForKey:@"formatted_phone_number"];
+                [eachObject setObject:phone forKey:@"phone"];
+            }
+            
+            if ([eachObject[@"avatar"] length] > 0) {
+                eachObject[@"has_photo"] = @YES;
+            }else{
+                eachObject[@"has_photo"] = @NO;
+            }
+
+            [eachObject save];
+           
+            clearId += 1;
+            
+            if (clearId == clearArray.count) {
+                
+                pageId += 1;
+                clearId = 0;
+                [self clearData];
+                
+            }else{
+                
+                i(clearId+pageId*100)
+                
+                [self addDetailToParse:clearArray[clearId]];
+            }
+            
+        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OVER_QUERY_LIMIT"]){
+            
+            keyArrayId += 1;
+            [self addDetailToParse:eachObject];
+            
+        }else{
+            
+            clearId += 1;
+            
+            if (clearId == clearArray.count) {
+                
+                pageId += 1;
+                clearId = 0;
+                [self clearData];
+                
+            }else{
+                
+                i(clearId+pageId*100)
+                
+                [self addDetailToParse:clearArray[clearId]];
+            }
+        }
         
-        i(clearId+pageId*100)
+        s([JSON valueForKey:@"status"])
         
-        [self addDetailToParse:clearArray[clearId]];
-    }
-    
-//    NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
-//    [parameterDict setObject:@"false" forKey:@"sensor"];
-//    [parameterDict setObject:eachObject[@"reference"] forKey:@"reference"];
-//    [parameterDict setObject:keyArray[keyArrayId] forKey:@"key"];
-//    
-//    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//    [manager GET:@"https://maps.googleapis.com/maps/api/place/details/json" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
-//        
-//        //NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
-//        
-//        if ([[JSON valueForKey:@"status"] isEqualToString:@"OK"]) {
-//            
-//            NSDictionary *result = (NSDictionary *)[JSON valueForKey:@"result"];
-//            
-//            if ([result objectForKey:@"opening_hours"]) {
-//                
-//                NSArray *openHoursArray = [result valueForKey:@"opening_hours"][@"weekday_text"];
-//                
-//                NSString *openHourString = @"";
-//                
-//                for (NSString *openDayString in openHoursArray) {
-//                    openHourString = [NSString stringWithFormat:@"%@\n%@",openHourString,openDayString];
-//                }
-//                
-//                [eachObject setObject:openHourString forKey:@"open_hour"];
-//            }
-//            
-//            if ([result objectForKey:@"formatted_phone_number"]) {
-//                NSString *phone = [result valueForKey:@"formatted_phone_number"];
-//                [eachObject setObject:phone forKey:@"phone"];
-//            }
-//            
-//            if ([eachObject[@"avatar"] length] > 0) {
-//                eachObject[@"has_photo"] = @YES;
-//            }else{
-//                eachObject[@"has_photo"] = @NO;
-//            }
-//
-//            [eachObject save];
-//           
-//            clearId += 1;
-//            
-//            if (clearId == clearArray.count) {
-//                
-//                pageId += 1;
-//                clearId = 0;
-//                [self clearData];
-//                
-//            }else{
-//                
-//                i(clearId+pageId*100)
-//                
-//                [self addDetailToParse:clearArray[clearId]];
-//            }
-//            
-//        }else if ([[JSON valueForKey:@"status"] isEqualToString:@"OVER_QUERY_LIMIT"]){
-//            
-//            keyArrayId += 1;
-//            [self addDetailToParse:eachObject];
-//            
-//        }else{
-//            
-//            clearId += 1;
-//            
-//            if (clearId == clearArray.count) {
-//                
-//                pageId += 1;
-//                clearId = 0;
-//                [self clearData];
-//                
-//            }else{
-//                
-//                i(clearId+pageId*100)
-//                
-//                [self addDetailToParse:clearArray[clearId]];
-//            }
-//        }
-//        
-//        s([JSON valueForKey:@"status"])
-//        
-//    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-//        s(operation.responseString)
-//    }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        s(operation.responseString)
+    }];
 }
 
 -(void)addReferenceToPlace:(PFObject *)eachObject
@@ -331,6 +307,36 @@
         s(@"g_photos is 0")
         [self goNextPhoto];
     }
+}
+
+-(void)copyParseClass:(PFObject *)eachObject
+{
+//    PFObject *newObject = [PFObject objectWithClassName:@"Place"];
+//    newObject = eachObject;
+//    newObject[@"address"] = @"123";
+//    [newObject save];
+    
+    PFObject *newObject = [PFObject objectWithClassName:@"Place"];
+    //newObject = eachObject;
+    newObject[@"address"] = @"Sean Plott";
+    newObject[@"photos"] = [eachObject relationForKey:@"photos"];
+    
+    [newObject save];
+    
+//    clearId += 1;
+//    
+//    if (clearId == clearArray.count) {
+//        
+//        pageId += 1;
+//        clearId = 0;
+//        [self clearData];
+//        
+//    }else{
+//        
+//        i(clearId+pageId*100)
+//        
+//        [self copyParseClass:clearArray[clearId]];
+//    }
 }
 
 -(void)getPhotoUrl:(NSDictionary *)photoDataDictionary
