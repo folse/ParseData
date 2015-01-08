@@ -54,7 +54,7 @@
 
 -(void)clearData
 {
-    PFQuery *query = [PFQuery queryWithClassName:@"StockholmPlace"];
+    PFQuery *query = [PFQuery queryWithClassName:@"Place"];
     query.skip = pageId * 100;
     query.limit = 100;
     [query orderByDescending:@"createdAt"];
@@ -68,7 +68,7 @@
             
             //[self addDetailToParse:clearArray[clearId]];
             
-            //[self addReferenceToPlace:clearArray[clearId]];
+            [self deleteNoAvatarParseClass:clearArray[clearId]];
             
             //[self copyParseClass:clearArray[clearId]];
             
@@ -308,62 +308,91 @@
     }
 }
 
+-(void)deleteNoAvatarParseClass:(PFObject *)eachObject
+{
+    if (![eachObject[@"has_photo"] boolValue]) {
+        s(@"no photo")
+        [eachObject delete];
+    }else{
+        
+        s(@"has photo")
+    }
+    
+    clearId += 1;
+    
+    if (clearId == clearArray.count) {
+        
+        pageId += 1;
+        clearId = 0;
+        [self clearData];
+        
+    }else{
+        
+        i(clearId+pageId*100)
+        
+        [self deleteNoAvatarParseClass:clearArray[clearId]];
+    }
+}
+
 -(void)copyParseClass:(PFObject *)eachObject
 {
-    PFObject *newObject = [PFObject objectWithClassName:@"Place"];
-    
-    newObject[@"news"] = eachObject[@"news"];
-    newObject[@"name"] = eachObject[@"name"];
-    newObject[@"phone"] = eachObject[@"phone"];
-    newObject[@"address"] = eachObject[@"address"];
-    newObject[@"location"] = eachObject[@"location"];
-    newObject[@"reference"] = eachObject[@"reference"];
-    newObject[@"description"] = eachObject[@"description"];
-    
-    newObject[@"delivery"] = eachObject[@"delivery"];
-    newObject[@"has_park"] = eachObject[@"has_park"];
-    newObject[@"has_wifi"] = eachObject[@"has_wifi"];
-    newObject[@"has_photo"] = eachObject[@"has_photo"];
-    newObject[@"has_alcohol"] = eachObject[@"has_alcohol"];
-    newObject[@"phone_reservation"] = eachObject[@"phone_reservation"];
-    
-    newObject[@"open_hour"] = [self replaceWeekDay:eachObject[@"open_hour"]];
-    
-    PFRelation *tagRelation = [newObject relationForKey:@"tag"];
-    NSArray *tagArray = [[[eachObject relationForKey:@"tag"] query] findObjects];
-    for (PFObject *item in tagArray) {
-        [tagRelation addObject:item];
-    }
-    
-    PFRelation *userRelation = [newObject relationForKey:@"user"];
-    NSArray *userArray = [[[eachObject relationForKey:@"user"] query] findObjects];
-    for (PFObject *item in userArray) {
-        [userRelation addObject:item];
-    }
-    
-    PFRelation *menuRelation = [newObject relationForKey:@"menu"];
-    NSArray *menuArray = [[[eachObject relationForKey:@"menu"] query] findObjects];
-    for (PFObject *item in menuArray) {
-        [menuRelation addObject:item];
-    }
-    
-    PFRelation *categoryRelation = [newObject relationForKey:@"category"];
-    NSArray *categoryArray = [[[eachObject relationForKey:@"category"] query] findObjects];
-    for (PFObject *item in categoryArray) {
-        [categoryRelation addObject:item];
-    }
-    
-    if (eachObject[@"has_photo"]) {
+    if ([eachObject[@"avatar"] length] > 0) {
         
-        newObject[@"avatar"] = eachObject[@"avatar"];
+        PFObject *newObject = [PFObject objectWithClassName:@"Place"];
         
-        PFRelation *photosRelation = [newObject relationForKey:@"photos"];
-        NSArray *photosArray = [[[eachObject relationForKey:@"photos"] query] findObjects];
-        for (PFObject *item in photosArray) {
-            [photosRelation addObject:item];
+        newObject[@"news"] = eachObject[@"news"];
+        newObject[@"name"] = eachObject[@"name"];
+        newObject[@"phone"] = eachObject[@"phone"];
+        newObject[@"address"] = eachObject[@"address"];
+        newObject[@"location"] = eachObject[@"location"];
+        newObject[@"reference"] = eachObject[@"reference"];
+        newObject[@"description"] = eachObject[@"description"];
+        
+        newObject[@"delivery"] = eachObject[@"delivery"];
+        newObject[@"has_park"] = eachObject[@"has_park"];
+        newObject[@"has_wifi"] = eachObject[@"has_wifi"];
+        newObject[@"has_photo"] = eachObject[@"has_photo"];
+        newObject[@"has_alcohol"] = eachObject[@"has_alcohol"];
+        newObject[@"phone_reservation"] = eachObject[@"phone_reservation"];
+        
+        newObject[@"open_hour"] = [self replaceWeekDay:eachObject[@"open_hour"]];
+        
+        PFRelation *tagRelation = [newObject relationForKey:@"tag"];
+        NSArray *tagArray = [[[eachObject relationForKey:@"tag"] query] findObjects];
+        for (PFObject *item in tagArray) {
+            [tagRelation addObject:item];
         }
+        
+        PFRelation *userRelation = [newObject relationForKey:@"user"];
+        NSArray *userArray = [[[eachObject relationForKey:@"user"] query] findObjects];
+        for (PFObject *item in userArray) {
+            [userRelation addObject:item];
+        }
+        
+        PFRelation *menuRelation = [newObject relationForKey:@"menu"];
+        NSArray *menuArray = [[[eachObject relationForKey:@"menu"] query] findObjects];
+        for (PFObject *item in menuArray) {
+            [menuRelation addObject:item];
+        }
+        
+        PFRelation *categoryRelation = [newObject relationForKey:@"category"];
+        NSArray *categoryArray = [[[eachObject relationForKey:@"category"] query] findObjects];
+        for (PFObject *item in categoryArray) {
+            [categoryRelation addObject:item];
+        }
+        
+        if (eachObject[@"has_photo"]) {
+            
+            newObject[@"avatar"] = eachObject[@"avatar"];
+            
+            PFRelation *photosRelation = [newObject relationForKey:@"photos"];
+            NSArray *photosArray = [[[eachObject relationForKey:@"photos"] query] findObjects];
+            for (PFObject *item in photosArray) {
+                [photosRelation addObject:item];
+            }
+        }
+        [newObject save];
     }
-    [newObject save];
     
     clearId += 1;
     
