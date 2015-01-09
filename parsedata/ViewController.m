@@ -14,10 +14,12 @@
     int clearId;
     int keyArrayId;
     int photoArrayId;
+    int firstArrayId;
+    int secondArrayId;
     NSArray *keyArray;
     NSArray *clearArray;
     NSArray *photoArray;
-    NSArray *jsonArray;
+    NSMutableArray *jsonArray;
     UIWebView *photoWebView;
     PFObject *currentObject;
     NSString *loadingPhotoUrl;
@@ -46,7 +48,17 @@
                 @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
                 @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
     
-    [self clearData];
+    s(NSHomeDirectory())
+    
+    [self readJSONData];
+    
+    while (firstArrayId < jsonArray.count-1) {
+        [self loopRemoveDuplicateData];
+    }
+    
+    [self writeJSONData];
+    
+    //[self clearData];
     
     //[self clearPhoto];
     
@@ -67,8 +79,6 @@
             //[self findDuplicateData:clearArray[clearId]];
             
             //[self addDetailToParse:clearArray[clearId]];
-            
-            [self deleteNoAvatarParseClass:clearArray[clearId]];
             
             //[self copyParseClass:clearArray[clearId]];
             
@@ -185,9 +195,9 @@
             }else{
                 eachObject[@"has_photo"] = @NO;
             }
-
+            
             [eachObject save];
-           
+            
             clearId += 1;
             
             if (clearId == clearArray.count) {
@@ -236,26 +246,26 @@
 //-(void)addReferenceToPlace:(PFObject *)eachObject
 //{
 //    for (NSDictionary *item in jsonArray) {
-//        
+//
 //        if ([eachObject[@"place_id"] isEqualToString:item[@"place_id"]]) {
 //            [eachObject setObject:item[@"reference"] forKey:@"reference"];
 //            [eachObject save];
 //            break;
 //        }
 //    }
-//    
+//
 //    clearId += 1;
-//    
+//
 //    if (clearId == clearArray.count) {
-//        
+//
 //        pageId += 1;
 //        clearId = 0;
 //        [self clearData];
-//        
+//
 //    }else{
-//        
+//
 //        i(clearId+pageId*100)
-//        
+//
 //        [self addReferenceToPlace:clearArray[clearId]];
 //    }
 //}
@@ -308,31 +318,31 @@
     }
 }
 
--(void)deleteNoAvatarParseClass:(PFObject *)eachObject
-{
-    if (![eachObject[@"has_photo"] boolValue]) {
-        s(@"no photo")
-        [eachObject delete];
-    }else{
-        
-        s(@"has photo")
-    }
-    
-    clearId += 1;
-    
-    if (clearId == clearArray.count) {
-        
-        pageId += 1;
-        clearId = 0;
-        [self clearData];
-        
-    }else{
-        
-        i(clearId+pageId*100)
-        
-        [self deleteNoAvatarParseClass:clearArray[clearId]];
-    }
-}
+//-(void)deleteNoAvatarParseClass:(PFObject *)eachObject
+//{
+//    if (![eachObject[@"has_photo"] boolValue]) {
+//        s(@"no photo")
+//        [eachObject delete];
+//    }else{
+//
+//        s(@"has photo")
+//    }
+//
+//    clearId += 1;
+//
+//    if (clearId == clearArray.count) {
+//
+//        pageId += 1;
+//        clearId = 0;
+//        [self clearData];
+//
+//    }else{
+//
+//        i(clearId+pageId*100)
+//
+//        [self deleteNoAvatarParseClass:clearArray[clearId]];
+//    }
+//}
 
 -(void)copyParseClass:(PFObject *)eachObject
 {
@@ -548,9 +558,41 @@
 
 -(void)readJSONData
 {
-    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"merchant_Stockholm" ofType:@"json"];
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Gothenburg" ofType:@"json"];
     NSString *jsonString = [[NSString alloc] initWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
-    jsonArray = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:nil];
+    NSArray *jsonDataArray = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:nil];
+    jsonArray = [NSMutableArray arrayWithArray:jsonDataArray];
+}
+
+-(void)writeJSONData
+{
+    NSData *JSONData = [NSJSONSerialization dataWithJSONObject:jsonArray options:kNilOptions error:nil];
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDir = [paths objectAtIndex:0];
+    NSString *filePath = [NSString stringWithFormat:@"%@/Gothenburg_final.json",documentsDir];
+    
+    [JSONData writeToFile:filePath atomically:NO];
+    s(@"finish!")
+}
+
+-(void)loopRemoveDuplicateData
+{
+    i(firstArrayId)
+    i(secondArrayId)
+    
+    secondArrayId += 1;
+    
+    if (secondArrayId >= jsonArray.count) {
+        
+        firstArrayId += 1;
+        secondArrayId = 1;
+    }
+    
+    if (firstArrayId != secondArrayId && [jsonArray[firstArrayId][@"reference"] isEqualToString:jsonArray[secondArrayId][@"reference"]] && [jsonArray[firstArrayId][@"address"] isEqualToString:jsonArray[secondArrayId][@"address"]]) {
+        
+        [jsonArray removeObjectAtIndex:secondArrayId];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
