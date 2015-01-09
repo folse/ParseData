@@ -20,6 +20,7 @@
     NSArray *clearArray;
     NSArray *photoArray;
     NSMutableArray *jsonArray;
+    NSMutableArray *referenceArray;
     UIWebView *photoWebView;
     PFObject *currentObject;
     NSString *loadingPhotoUrl;
@@ -48,20 +49,35 @@
                 @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
                 @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
     
+    [self deleteDuplicateData];
+    
+    //[self clearData];
+    
+    //[self clearPhoto];
+    
+}
+
+-(void)deleteDuplicateData
+{
+    
+    
     s(NSHomeDirectory())
     
     [self readJSONData];
+    
+    
+    referenceArray = [NSMutableArray new];
+    
+    for (NSDictionary *item in jsonArray) {
+        [referenceArray addObject:item[@"reference"]];
+    }
+    
     
     while (firstArrayId < jsonArray.count-1) {
         [self loopRemoveDuplicateData];
     }
     
     [self writeJSONData];
-    
-    //[self clearData];
-    
-    //[self clearPhoto];
-    
 }
 
 -(void)clearData
@@ -589,7 +605,7 @@
         secondArrayId = 1;
     }
     
-    if (firstArrayId != secondArrayId && [jsonArray[firstArrayId][@"reference"] isEqualToString:jsonArray[secondArrayId][@"reference"]] && [jsonArray[firstArrayId][@"address"] isEqualToString:jsonArray[secondArrayId][@"address"]]) {
+    if (firstArrayId != secondArrayId && [jsonArray[firstArrayId][@"reference"] isEqualToString:jsonArray[secondArrayId][@"reference"]]) {
         
         [jsonArray removeObjectAtIndex:secondArrayId];
     }
