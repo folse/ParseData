@@ -16,14 +16,19 @@
     int photoArrayId;
     int firstArrayId;
     int secondArrayId;
+    
     NSArray *keyArray;
     NSArray *clearArray;
     NSArray *photoArray;
     NSMutableArray *jsonArray;
+    NSMutableArray *newJsonArray;
     NSMutableArray *referenceArray;
+    
     UIWebView *photoWebView;
     PFObject *currentObject;
     NSString *loadingPhotoUrl;
+    
+    PFObject *category;
 }
 
 @end
@@ -49,40 +54,108 @@
                 @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
                 @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
     
-    [self deleteDuplicateData];
+    //[self addData];
     
-    //[self clearData];
+    [self clearData];
     
     //[self clearPhoto];
     
 }
 
+-(void)addData
+{
+    [self readJSONData];
+    
+    [PFUser logInWithUsername:@"robot" password:@"456456"];
+    
+    category = [PFObject objectWithoutDataWithClassName:@"Category_Place" objectId:@"4LKLTtNtTX"];
+    
+    for (NSDictionary *item in jsonArray) {
+         [self addDataToParse:item];
+    }
+}
+
+-(void)addDataToParse:(NSDictionary *)item
+{
+    double latitude = [item[@"geometry"][@"location"][@"lat"] doubleValue];
+    double longitude = [item[@"geometry"][@"location"][@"lng"] doubleValue];
+    
+    PFObject *place = [PFObject objectWithClassName:@"TempPlace"];
+    place[@"news"] = @"";
+    place[@"phone"] = @"";
+    place[@"avatar"] = @"";
+    place[@"address"] = @"";
+    place[@"open_hour"] = @"";
+    place[@"description"] = @"";
+    
+    place[@"delivery"] = @NO;
+    place[@"has_wifi"] = @NO;
+    place[@"has_park"] = @NO;
+    place[@"delivery"] = @NO;
+    place[@"has_alcohol"] = @NO;
+    place[@"phone_reservation"] = @NO;
+    
+    [[place relationForKey:@"category"] addObject:category];
+    [[place relationForKey:@"user"] addObject:[PFUser currentUser]];
+    
+    place[@"name"] = item[@"name"];
+    place[@"reference"] = item[@"reference"];
+    place[@"address"] = item[@"formatted_address"];
+    place[@"location"] = [PFGeoPoint geoPointWithLatitude:latitude longitude:longitude];
+    
+    if ([item.allKeys containsObject:item[@"photos"]]) {
+        place[@"g_photos"] = [NSArray arrayWithArray:item[@"photos"]];
+    }else{
+        place[@"g_photos"] = [NSArray array];
+    }
+    
+    if ([place save]) {
+        s(@"success")
+    }
+}
+
 -(void)deleteDuplicateData
 {
-    
-    
     s(NSHomeDirectory())
     
     [self readJSONData];
     
-    
+    newJsonArray = [NSMutableArray new];
     referenceArray = [NSMutableArray new];
     
-    for (NSDictionary *item in jsonArray) {
+    for(NSDictionary *item in jsonArray){
+        
         [referenceArray addObject:item[@"reference"]];
     }
     
-    
-    while (firstArrayId < jsonArray.count-1) {
+    while (firstArrayId < referenceArray.count-1) {
         [self loopRemoveDuplicateData];
     }
     
+    for(NSString *item in referenceArray){
+        
+        [newJsonArray addObject:[self findJsonObjectWithReference:item]];
+    }
+       
     [self writeJSONData];
+}
+
+-(NSDictionary *)findJsonObjectWithReference:(NSString *)reference
+{
+    for (NSDictionary *item in jsonArray) {
+        if ([item[@"reference"] isEqualToString:reference]) {
+            return item;
+        }
+    }
+    
+    s(@"not find the json object by this reference")
+
+    return nil;
 }
 
 -(void)clearData
 {
-    PFQuery *query = [PFQuery queryWithClassName:@"Place"];
+    PFQuery *query = [PFQuery queryWithClassName:@"TempPlace"];
     query.skip = pageId * 100;
     query.limit = 100;
     [query orderByDescending:@"createdAt"];
@@ -94,7 +167,7 @@
             
             //[self findDuplicateData:clearArray[clearId]];
             
-            //[self addDetailToParse:clearArray[clearId]];
+            [self addDetailToParse:clearArray[clearId]];
             
             //[self copyParseClass:clearArray[clearId]];
             
@@ -204,12 +277,6 @@
             if ([result objectForKey:@"formatted_phone_number"]) {
                 NSString *phone = [result valueForKey:@"formatted_phone_number"];
                 [eachObject setObject:phone forKey:@"phone"];
-            }
-            
-            if ([eachObject[@"avatar"] length] > 0) {
-                eachObject[@"has_photo"] = @YES;
-            }else{
-                eachObject[@"has_photo"] = @NO;
             }
             
             [eachObject save];
@@ -452,10 +519,10 @@
 
 -(void)findDuplicateData:(PFObject *)eachObject
 {
-    PFQuery *query = [PFQuery queryWithClassName:@"StockholmPlace"];
+    PFQuery *query = [PFQuery queryWithClassName:@"TempPlace"];
     [query whereKey:@"name" equalTo:eachObject[@"name"]];
     [query whereKey:@"address" equalTo:eachObject[@"address"]];
-    [query whereKey:@"reference" equalTo:eachObject[@"reference"]];
+    //[query whereKey:@"reference" equalTo:eachObject[@"reference"]];
     [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
         
         if (!error) {
@@ -582,7 +649,7 @@
 
 -(void)writeJSONData
 {
-    NSData *JSONData = [NSJSONSerialization dataWithJSONObject:jsonArray options:kNilOptions error:nil];
+    NSData *JSONData = [NSJSONSerialization dataWithJSONObject:newJsonArray options:kNilOptions error:nil];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
@@ -594,20 +661,26 @@
 
 -(void)loopRemoveDuplicateData
 {
-    i(firstArrayId)
-    i(secondArrayId)
-    
     secondArrayId += 1;
     
-    if (secondArrayId >= jsonArray.count) {
+    if (secondArrayId >= referenceArray.count) {
         
         firstArrayId += 1;
         secondArrayId = 1;
     }
     
-    if (firstArrayId != secondArrayId && [jsonArray[firstArrayId][@"reference"] isEqualToString:jsonArray[secondArrayId][@"reference"]]) {
+    s(@"first")
+    i(firstArrayId)
+    s(@"second")
+    i(secondArrayId)
+    
+    if ([referenceArray[firstArrayId] isEqualToString:referenceArray[secondArrayId]]) {
         
-        [jsonArray removeObjectAtIndex:secondArrayId];
+        if (firstArrayId != secondArrayId) {
+            
+            s(@"delete_________________________________one")
+            [referenceArray removeObjectAtIndex:secondArrayId];
+        }
     }
 }
 
