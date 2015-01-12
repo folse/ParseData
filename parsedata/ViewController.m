@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController ()<UIWebViewDelegate>
 {
     int pageId;
     int clearId;
@@ -36,6 +36,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    photoWebView = [[UIWebView alloc] init];
+    [photoWebView setDelegate:self];
+    
     keyArray = [NSArray arrayWithObjects:@"AIzaSyC8IfTEGsA4s8I6SB4SZBgT0b2WJR7mkcY",
                 @"AIzaSyC5xWawMGqWOi3VJq0xoLsdGKU84Nf8eLk",
                 @"AIzaSyC6GGSFl-RKY5XgFeGEFNdkLIzC5g5JSpw",
@@ -56,7 +59,7 @@
     
     //[self addData];
     
-    //[self clearData];
+    [self clearData];
 }
 
 -(void)addData
@@ -441,13 +444,14 @@
     }
 }
 
--(NSString *)addPhotoToQiniu:(PFObject *)eachObject withUrl:(NSString *)url
+-(void)addPhotoToQiniu:(PFObject *)eachObject withUrl:(NSString *)photoUrl
 {
-    __block NSString *imageUrl;
+    NSString *timeStamps = [NSString stringWithFormat:@"%.3f", [[NSDate date] timeIntervalSince1970]];
+    timeStamps = [timeStamps stringByReplacingOccurrencesOfString:@"." withString:@""];
     
     NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
-    [parameterDict setObject:eachObject[@"url"] forKey:@"file_url"];
-    [parameterDict setObject:eachObject.objectId forKey:@"file_name"];
+    [parameterDict setObject:photoUrl forKey:@"file_url"];
+    [parameterDict setObject:timeStamps forKey:@"file_name"];
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager POST:@"http://localhost/api/upload_to_qiniu" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
@@ -456,14 +460,12 @@
         
         if ([[JSON valueForKey:@"respcd"] isEqualToString:@"0000"]) {
             
-            imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
+            [self savePhotoUrl:eachObject withUrl:[NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]]];
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         s(operation.responseString)
     }];
-    
-    return imageUrl;
 }
 
 -(void)getPhotoUrl:(NSDictionary *)photoDataDictionary
@@ -475,37 +477,28 @@
 
 -(void)savePhotoUrl:(PFObject *)object withUrl:(NSString *)photoUrl
 {
-    photoUrl = [self addPhotoToQiniu:object withUrl:photoUrl];
-    
-    if (photoUrl) {
+    PFObject *photoObject = [PFObject objectWithClassName:@"Photo"];
+    photoObject[@"url"] = photoUrl;
+    photoObject[@"other_category"] = @YES;
+    [photoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
         
-        PFObject *photoObject = [PFObject objectWithClassName:@"Photo"];
-        photoObject[@"url"] = photoUrl;
-        photoObject[@"other_category"]=@YES;
-        [photoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        PFRelation *photoRelation = [object relationForKey:@"photos"];
+        [photoRelation addObject:photoObject];
+        
+        [object saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
             
-            PFRelation *photoRelation = [object relationForKey:@"photos"];
-            [photoRelation addObject:photoObject];
+            photoArrayId += 1;
             
-            [object saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            if (photoArray.count > photoArrayId) {
                 
-                photoArrayId += 1;
+                [self getPhotoUrl:photoArray[photoArrayId]];
                 
-                if (photoArray.count > photoArrayId) {
-                    
-                    [self getPhotoUrl:photoArray[photoArrayId]];
-                    
-                }else{
-                    
-                    [self goNextPhoto];
-                }
-            }];
+            }else{
+                
+                [self goNextPhoto];
+            }
         }];
-        
-    }else{
-        
-        [self goNextPhoto];
-    }
+    }];
 }
 
 -(void)getRealImageUrl:(NSString *)url
@@ -515,8 +508,6 @@
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {
-    s(request.URL.absoluteString)
-    
     if ([request.URL.absoluteString rangeOfString:@"googleusercontent.com"].length > 0) {
         
         loadingPhotoUrl = request.URL.absoluteString;
@@ -528,7 +519,7 @@
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
     if (loadingPhotoUrl) {
-        [self savePhotoUrl:currentObject withUrl:loadingPhotoUrl];
+        [self addPhotoToQiniu:currentObject withUrl:loadingPhotoUrl];
         loadingPhotoUrl = nil;
     }
 }
