@@ -21,8 +21,6 @@
     NSArray *clearArray;
     NSArray *photoArray;
     NSMutableArray *jsonArray;
-    NSMutableArray *newJsonArray;
-    NSMutableArray *referenceArray;
     
     UIWebView *photoWebView;
     PFObject *currentObject;
@@ -54,12 +52,11 @@
                 @"AIzaSyDJxa5YEb1cDhNvt8RGaUjPsmTLVwWNbdc",
                 @"AIzaSyBdwlLFKYF7QbAfMGjtcUS3Lp_-1grDFU0",nil];
     
+    //[self deleteDuplicateData];
+    
     //[self addData];
     
-    [self clearData];
-    
-    //[self clearPhoto];
-    
+    //[self clearData];
 }
 
 -(void)addData
@@ -70,10 +67,85 @@
     
     category = [PFObject objectWithoutDataWithClassName:@"Category_Place" objectId:@"4LKLTtNtTX"];
     
-    for (NSDictionary *item in jsonArray) {
-         [self addDataToParse:item];
+    for (int i = 0; i < jsonArray.count; i++) {
+        i(i)
+        [self addDataToParse:(NSDictionary *)jsonArray[i]];
     }
 }
+
+-(void)deleteDuplicateData
+{
+    s(NSHomeDirectory())
+    
+    [self readJSONData];
+    
+    while (firstArrayId < jsonArray.count-1) {
+        [self loopRemoveDuplicateData];
+    }
+    
+    [self writeJSONData];
+}
+
+-(NSDictionary *)findJsonObjectWithReference:(NSString *)reference
+{
+    for (NSDictionary *item in jsonArray) {
+        if ([item[@"reference"] isEqualToString:reference]) {
+            return item;
+        }
+    }
+    
+    s(@"not find the json object by this reference")
+    
+    return nil;
+}
+
+-(void)clearData
+{
+    PFQuery *query = [PFQuery queryWithClassName:@"TempPlace"];
+    query.skip = pageId * 100;
+    query.limit = 100;
+    [query orderByDescending:@"createdAt"];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        
+        if (!error) {
+            
+            clearArray = objects;
+            
+            //[self findDuplicateData:clearArray[clearId]];
+            
+            //[self addDetailToParse:clearArray[clearId]];
+            
+            [self addPhotoToParse:clearArray[clearId]];
+            
+            //[self copyParseClass:clearArray[clearId]];
+            
+        } else {
+            
+            NSLog(@"Error: %@ %@", error, [error userInfo]);
+        }
+    }];
+}
+
+//-(void)clearPhoto
+//{
+//    PFQuery *query = [PFQuery queryWithClassName:@"Photo"];
+//    [query whereKey:@"url" hasPrefix:@"https"];
+//    query.skip = pageId * 100;
+//    query.limit = 100;
+//    [query orderByDescending:@"createdAt"];
+//    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+//        if (!error) {
+//
+//            clearArray = objects;
+//
+//            [self addPhotoToQiniu:clearArray[clearId]];
+//
+//        } else {
+//
+//            NSLog(@"Error: %@ %@", error, [error userInfo]);
+//        }
+//    }];
+//}
 
 -(void)addDataToParse:(NSDictionary *)item
 {
@@ -103,7 +175,7 @@
     place[@"address"] = item[@"formatted_address"];
     place[@"location"] = [PFGeoPoint geoPointWithLatitude:latitude longitude:longitude];
     
-    if ([item.allKeys containsObject:item[@"photos"]]) {
+    if ([item.allKeys containsObject:@"photos"]) {
         place[@"g_photos"] = [NSArray arrayWithArray:item[@"photos"]];
     }else{
         place[@"g_photos"] = [NSArray array];
@@ -111,137 +183,6 @@
     
     if ([place save]) {
         s(@"success")
-    }
-}
-
--(void)deleteDuplicateData
-{
-    s(NSHomeDirectory())
-    
-    [self readJSONData];
-    
-    newJsonArray = [NSMutableArray new];
-    referenceArray = [NSMutableArray new];
-    
-    for(NSDictionary *item in jsonArray){
-        
-        [referenceArray addObject:item[@"reference"]];
-    }
-    
-    while (firstArrayId < referenceArray.count-1) {
-        [self loopRemoveDuplicateData];
-    }
-    
-    for(NSString *item in referenceArray){
-        
-        [newJsonArray addObject:[self findJsonObjectWithReference:item]];
-    }
-       
-    [self writeJSONData];
-}
-
--(NSDictionary *)findJsonObjectWithReference:(NSString *)reference
-{
-    for (NSDictionary *item in jsonArray) {
-        if ([item[@"reference"] isEqualToString:reference]) {
-            return item;
-        }
-    }
-    
-    s(@"not find the json object by this reference")
-
-    return nil;
-}
-
--(void)clearData
-{
-    PFQuery *query = [PFQuery queryWithClassName:@"TempPlace"];
-    query.skip = pageId * 100;
-    query.limit = 100;
-    [query orderByDescending:@"createdAt"];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        
-        if (!error) {
-            
-            clearArray = objects;
-            
-            //[self findDuplicateData:clearArray[clearId]];
-            
-            [self addDetailToParse:clearArray[clearId]];
-            
-            //[self copyParseClass:clearArray[clearId]];
-            
-        } else {
-            
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
-        }
-    }];
-}
-
--(void)clearPhoto
-{
-    PFQuery *query = [PFQuery queryWithClassName:@"Photo"];
-    [query whereKey:@"url" hasPrefix:@"https"];
-    query.skip = pageId * 100;
-    query.limit = 100;
-    [query orderByDescending:@"createdAt"];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        if (!error) {
-            
-            clearArray = objects;
-            
-            //[self addPhotoToParse:clearArray[clearId]];
-            
-            //[self addPhotoToQiniu:clearArray[clearId]];
-            
-        } else {
-            
-            NSLog(@"Error: %@ %@", error, [error userInfo]);
-        }
-    }];
-}
-
--(void)addPhotoToQiniu:(PFObject *)eachObject
-{
-    if (eachObject[@"url"]){
-        
-        NSLog(@"%@",eachObject[@"url"]);
-        
-        NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
-        [parameterDict setObject:eachObject[@"url"] forKey:@"file_url"];
-        [parameterDict setObject:eachObject.objectId forKey:@"file_name"];
-        
-        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        [manager POST:@"http://localhost/api/upload_to_qiniu" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
-            
-            NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
-            
-            if ([[JSON valueForKey:@"respcd"] isEqualToString:@"0000"]) {
-                
-                currentObject = eachObject;
-                
-                NSString *imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
-                
-                currentObject[@"url"] = imageUrl;
-                [currentObject save];
-            }
-            
-            clearId += 1;
-            
-            if (clearId == clearArray.count) {
-                
-                pageId += 1;
-                clearId = 0;
-                [self clearData];
-                
-            }else{
-                
-                [self addPhotoToQiniu:clearArray[clearId]];
-            }
-            
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            s(operation.responseString)
-        }];
     }
 }
 
@@ -326,33 +267,6 @@
     }];
 }
 
-//-(void)addReferenceToPlace:(PFObject *)eachObject
-//{
-//    for (NSDictionary *item in jsonArray) {
-//
-//        if ([eachObject[@"place_id"] isEqualToString:item[@"place_id"]]) {
-//            [eachObject setObject:item[@"reference"] forKey:@"reference"];
-//            [eachObject save];
-//            break;
-//        }
-//    }
-//
-//    clearId += 1;
-//
-//    if (clearId == clearArray.count) {
-//
-//        pageId += 1;
-//        clearId = 0;
-//        [self clearData];
-//
-//    }else{
-//
-//        i(clearId+pageId*100)
-//
-//        [self addReferenceToPlace:clearArray[clearId]];
-//    }
-//}
-
 -(void)addAvatarToParse:(PFObject *)eachObject
 {
     PFRelation *relation = [eachObject relationForKey:@"photos"];
@@ -370,62 +284,6 @@
     
     [self goNextPhoto];
 }
-
--(void)addPhotoToParse:(PFObject *)eachObject
-{
-    photoArray = [NSArray arrayWithArray:eachObject[@"g_photos"]];
-    
-    if (photoArray.count > 0){
-        
-        currentObject = eachObject;
-        
-        PFRelation *relation = [eachObject relationForKey:@"photos"];
-        PFQuery *productPhotoQuery = [relation query];
-        productPhotoQuery.limit = 1;
-        [productPhotoQuery countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
-            //if the "photos" has no photo relations, it should be the first time to add photo
-            if (!error && number == 0) {
-                
-                [self getPhotoUrl:photoArray[0]];
-                
-            }else{
-                
-                [self goNextPhoto];
-            }
-        }];
-        
-    }else{
-        
-        s(@"g_photos is 0")
-        [self goNextPhoto];
-    }
-}
-
-//-(void)deleteNoAvatarParseClass:(PFObject *)eachObject
-//{
-//    if (![eachObject[@"has_photo"] boolValue]) {
-//        s(@"no photo")
-//        [eachObject delete];
-//    }else{
-//
-//        s(@"has photo")
-//    }
-//
-//    clearId += 1;
-//
-//    if (clearId == clearArray.count) {
-//
-//        pageId += 1;
-//        clearId = 0;
-//        [self clearData];
-//
-//    }else{
-//
-//        i(clearId+pageId*100)
-//
-//        [self deleteNoAvatarParseClass:clearArray[clearId]];
-//    }
-//}
 
 -(void)copyParseClass:(PFObject *)eachObject
 {
@@ -553,6 +411,61 @@
     }];
 }
 
+-(void)addPhotoToParse:(PFObject *)eachObject
+{
+    photoArray = [NSArray arrayWithArray:eachObject[@"g_photos"]];
+    
+    if (photoArray.count > 0){
+        
+        currentObject = eachObject;
+        
+        PFRelation *relation = [eachObject relationForKey:@"photos"];
+        PFQuery *productPhotoQuery = [relation query];
+        productPhotoQuery.limit = 1;
+        [productPhotoQuery countObjectsInBackgroundWithBlock:^(int number, NSError *error) {
+            //if the "photos" has no photo relations, it should be the first time to add photo
+            if (!error && number == 0) {
+                
+                [self getPhotoUrl:photoArray[0]];
+                
+            }else{
+                
+                [self goNextPhoto];
+            }
+        }];
+        
+    }else{
+        
+        s(@"g_photos is 0")
+        [self goNextPhoto];
+    }
+}
+
+-(NSString *)addPhotoToQiniu:(PFObject *)eachObject withUrl:(NSString *)url
+{
+    __block NSString *imageUrl;
+    
+    NSMutableDictionary *parameterDict = [[NSMutableDictionary alloc] init];
+    [parameterDict setObject:eachObject[@"url"] forKey:@"file_url"];
+    [parameterDict setObject:eachObject.objectId forKey:@"file_name"];
+    
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager POST:@"http://localhost/api/upload_to_qiniu" parameters:parameterDict success:^(AFHTTPRequestOperation *operation, id JSON) {
+        
+        NSLog(@"%@:%@",operation.response.URL.relativePath,JSON);
+        
+        if ([[JSON valueForKey:@"respcd"] isEqualToString:@"0000"]) {
+            
+            imageUrl = [NSString stringWithFormat:@"http://ts-image1.qiniudn.com/%@",[JSON valueForKey:@"file_name"]];
+        }
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        s(operation.responseString)
+    }];
+    
+    return imageUrl;
+}
+
 -(void)getPhotoUrl:(NSDictionary *)photoDataDictionary
 {
     NSString *photoReference = photoDataDictionary[@"photo_reference"];
@@ -562,28 +475,37 @@
 
 -(void)savePhotoUrl:(PFObject *)object withUrl:(NSString *)photoUrl
 {
-    PFObject *photoObject = [PFObject objectWithClassName:@"Photo"];
-    photoObject[@"url"] = photoUrl;
-    photoObject[@"other_category"]=@YES;
-    [photoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+    photoUrl = [self addPhotoToQiniu:object withUrl:photoUrl];
+    
+    if (photoUrl) {
         
-        PFRelation *photoRelation = [object relationForKey:@"photos"];
-        [photoRelation addObject:photoObject];
-        
-        [object saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+        PFObject *photoObject = [PFObject objectWithClassName:@"Photo"];
+        photoObject[@"url"] = photoUrl;
+        photoObject[@"other_category"]=@YES;
+        [photoObject saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
             
-            photoArrayId += 1;
+            PFRelation *photoRelation = [object relationForKey:@"photos"];
+            [photoRelation addObject:photoObject];
             
-            if (photoArray.count > photoArrayId) {
+            [object saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
                 
-                [self getPhotoUrl:photoArray[photoArrayId]];
+                photoArrayId += 1;
                 
-            }else{
-                
-                [self goNextPhoto];
-            }
+                if (photoArray.count > photoArrayId) {
+                    
+                    [self getPhotoUrl:photoArray[photoArrayId]];
+                    
+                }else{
+                    
+                    [self goNextPhoto];
+                }
+            }];
         }];
-    }];
+        
+    }else{
+        
+        [self goNextPhoto];
+    }
 }
 
 -(void)getRealImageUrl:(NSString *)url
@@ -641,7 +563,7 @@
 
 -(void)readJSONData
 {
-    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Gothenburg" ofType:@"json"];
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Gothenburg_final" ofType:@"json"];
     NSString *jsonString = [[NSString alloc] initWithContentsOfFile:filePath encoding:NSUTF8StringEncoding error:nil];
     NSArray *jsonDataArray = [NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:nil];
     jsonArray = [NSMutableArray arrayWithArray:jsonDataArray];
@@ -649,7 +571,7 @@
 
 -(void)writeJSONData
 {
-    NSData *JSONData = [NSJSONSerialization dataWithJSONObject:newJsonArray options:kNilOptions error:nil];
+    NSData *JSONData = [NSJSONSerialization dataWithJSONObject:jsonArray options:kNilOptions error:nil];
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDir = [paths objectAtIndex:0];
@@ -663,24 +585,21 @@
 {
     secondArrayId += 1;
     
-    if (secondArrayId >= referenceArray.count) {
+    if (secondArrayId >= jsonArray.count) {
         
         firstArrayId += 1;
         secondArrayId = 1;
+        
+        i(firstArrayId)
     }
     
-    s(@"first")
-    i(firstArrayId)
-    s(@"second")
-    i(secondArrayId)
-    
-    if ([referenceArray[firstArrayId] isEqualToString:referenceArray[secondArrayId]]) {
+    if (firstArrayId != secondArrayId
+        && [[NSString stringWithFormat:@"%@",jsonArray[firstArrayId][@"name"]] isEqualToString:[NSString stringWithFormat:@"%@",jsonArray[secondArrayId][@"name"]]]
+        && [[NSString stringWithFormat:@"%@",jsonArray[firstArrayId][@"address"]] isEqualToString:[NSString stringWithFormat:@"%@",jsonArray[secondArrayId][@"address"]]]) {
         
-        if (firstArrayId != secondArrayId) {
-            
-            s(@"delete_________________________________one")
-            [referenceArray removeObjectAtIndex:secondArrayId];
-        }
+        [jsonArray removeObjectAtIndex:secondArrayId];
+        
+        s(@"delete duplicate object")
     }
 }
 

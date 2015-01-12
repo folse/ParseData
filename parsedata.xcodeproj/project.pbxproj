@@ -16,6 +16,7 @@
 		A112484B1A480A01006F89A3 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = A11248491A480A01006F89A3 /* LaunchScreen.xib */; };
 		A11248571A480A01006F89A3 /* parsedataTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248561A480A01006F89A3 /* parsedataTests.m */; };
 		A11248641A480DD0006F89A3 /* FSUtilSettings.m in Sources */ = {isa = PBXBuildFile; fileRef = A11248631A480DD0006F89A3 /* FSUtilSettings.m */; };
+		A18C16551A62E572003DF98E /* Gothenburg_final.json in Resources */ = {isa = PBXBuildFile; fileRef = A18C16541A62E572003DF98E /* Gothenburg_final.json */; };
 		A19738151A5EBFD7006D3822 /* Gothenburg.json in Resources */ = {isa = PBXBuildFile; fileRef = A19738141A5EBFD7006D3822 /* Gothenburg.json */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +50,7 @@
 		A11248611A480D88006F89A3 /* parsedata-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "parsedata-Prefix.pch"; sourceTree = "<group>"; };
 		A11248621A480DD0006F89A3 /* FSUtilSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSUtilSettings.h; sourceTree = "<group>"; };
 		A11248631A480DD0006F89A3 /* FSUtilSettings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSUtilSettings.m; sourceTree = "<group>"; };
+		A18C16541A62E572003DF98E /* Gothenburg_final.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Gothenburg_final.json; sourceTree = "<group>"; };
 		A19738141A5EBFD7006D3822 /* Gothenburg.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Gothenburg.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -111,6 +113,7 @@
 				A11248491A480A01006F89A3 /* LaunchScreen.xib */,
 				A11248621A480DD0006F89A3 /* FSUtilSettings.h */,
 				A11248631A480DD0006F89A3 /* FSUtilSettings.m */,
+				A18C16541A62E572003DF98E /* Gothenburg_final.json */,
 				A19738141A5EBFD7006D3822 /* Gothenburg.json */,
 				A11248AC1A4991D8006F89A3 /* Vender */,
 				A112483A1A480A01006F89A3 /* Supporting Files */,
@@ -243,6 +246,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A18C16551A62E572003DF98E /* Gothenburg_final.json in Resources */,
 				A19738151A5EBFD7006D3822 /* Gothenburg.json in Resources */,
 				A11248461A480A01006F89A3 /* Main.storyboard in Resources */,
 				A112484B1A480A01006F89A3 /* LaunchScreen.xib in Resources */,
